@@ -1,225 +1,48 @@
-import { Link } from 'react-router-dom';
-import { useState } from 'react';
-
-// Tipos para TypeScript
-interface Employee {
-  id: string;
-  name: string;
-  dni: string;
-  position: string;
-  department: string;
-  email: string;
-  phone: string;
-  salary: number;
-}
+import Sidebar from '../../Components/Sidebar';
+import Navbar from '../../Components/Navbar';
+import { useEmployees, getDepartmentColor } from '../../Contexts/EmployeeContext';
 
 const Dashboard = () => {
-  // Estado para filtros
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedDepartment, setSelectedDepartment] = useState('Todos');
-  const [sortBy, setSortBy] = useState('nombre');
-
-  // Datos simulados de empleados
-  const employeesData: Employee[] = [
-    {
-      id: 'CM',
-      name: 'Carlos Mendoza',
-      dni: '12345678',
-      position: 'Lead Game Developer',
-      department: 'Desarrollo',
-      email: 'carlos.mendoza@gamehub.com',
-      phone: '+51 999 888 777',
-      salary: 6500
-    },
-    {
-      id: 'AR',
-      name: 'Ana Rodriguez',
-      dni: '87654321',
-      position: 'Diseñadora UI/UX',
-      department: 'Diseño',
-      email: 'ana.rodriguez@gamehub.com',
-      phone: '+51 987 654 321',
-      salary: 5800
-    }
-  ];
-
-  // Filtrar empleados
-  const filteredEmployees = employeesData
-    .filter(emp => {
-      const matchesSearch = emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           emp.email.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesDepartment = selectedDepartment === 'Todos' || emp.department === selectedDepartment;
-      return matchesSearch && matchesDepartment;
-    })
-    .sort((a, b) => {
-      if (sortBy === 'nombre') return a.name.localeCompare(b.name);
-      if (sortBy === 'salario') return b.salary - a.salary;
-      return 0;
-    });
-
-  // Colores por departamento
-  const getDepartmentColor = (dept: string) => {
-    const colors: Record<string, string> = {
-      'Desarrollo': 'bg-purple-500/20 text-purple-300 border-purple-500/50',
-      'Diseño': 'bg-pink-500/20 text-pink-300 border-pink-500/50',
-      'Marketing': 'bg-blue-500/20 text-blue-300 border-blue-500/50',
-      'RRHH': 'bg-green-500/20 text-green-300 border-green-500/50'
-    };
-    return colors[dept] || 'bg-slate-500/20 text-slate-300 border-slate-500/50';
-  };
+  // Usando el Context - Ya no necesitamos searchTerm y setSearchTerm aquí
+  const {
+    selectedDepartment,
+    setSelectedDepartment,
+    sortBy,
+    setSortBy,
+    filteredEmployees,
+    // Estadísticas dinámicas
+    totalEmployees,
+    newThisMonth,
+    departmentsCount,
+    averageSalary
+  } = useEmployees();
 
   return (
     <div className="flex min-h-screen" style={{ background: 'radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%)' }}>
       
-      {/* ============================================ */}
-      {/* SIDEBAR */}
-      {/* ============================================ */}
-      <aside className="w-64 bg-slate-900/50 backdrop-blur-sm border-r border-slate-700/50 flex flex-col">
-        
-        {/* Logo */}
-        <div className="p-6 border-b border-slate-700/50">
-          <div className="flex items-center gap-3">
-            <svg className="w-8 h-8 text-purple-500" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-            </svg>
-            <span className="text-xl font-bold text-purple-400">GAMEHUB</span>
-          </div>
-        </div>
+      {/* SIDEBAR COMPONENT */}
+      <Sidebar />
 
-        {/* Navigation Menu */}
-        <nav className="flex-1 p-4 space-y-2">
-          <Link
-            to="/dashboard"
-            className="flex items-center gap-3 px-4 py-3 rounded-lg bg-purple-500/20 text-purple-300 border border-purple-500/50 font-medium"
-          >
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
-            </svg>
-            Dashboard
-          </Link>
-
-          <button
-            disabled
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 cursor-not-allowed opacity-50"
-          >
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
-            </svg>
-            Empleados
-          </button>
-
-          <button
-            disabled
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 cursor-not-allowed opacity-50"
-          >
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
-            </svg>
-            Gráficos
-          </button>
-
-          <button
-            disabled
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 cursor-not-allowed opacity-50"
-          >
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd"/>
-            </svg>
-            Reportes
-          </button>
-
-          <button
-            disabled
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 cursor-not-allowed opacity-50"
-          >
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd"/>
-            </svg>
-            Configuración
-          </button>
-        </nav>
-
-        {/* Logout Button */}
-        <div className="p-4 border-t border-slate-700/50">
-          <Link
-            to="/login"
-            className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-800/50 transition-colors"
-          >
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clipRule="evenodd"/>
-            </svg>
-            Cerrar sesión
-          </Link>
-        </div>
-      </aside>
-
-      {/* ============================================ */}
       {/* MAIN CONTENT */}
-      {/* ============================================ */}
       <main className="flex-1 overflow-auto">
         
-        {/* NAVBAR SUPERIOR */}
-        <header className="bg-slate-800/30 backdrop-blur-sm border-b border-slate-700/50 px-8 py-4">
-          <div className="flex items-center justify-between">
-            
-            {/* Barra de búsqueda */}
-            <div className="relative flex-1 max-w-md">
-              <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-              </svg>
-              <input
-                type="text"
-                placeholder="Buscar empleados..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-slate-200 placeholder-slate-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
-            </div>
+        {/* NAVBAR COMPONENT - Ya no necesita props */}
+        <Navbar />
 
-            {/* User Info */}
-            <div className="flex items-center gap-4">
-              {/* Notifications */}
-              <button className="relative p-2 text-slate-400 hover:text-slate-300">
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/>
-                </svg>
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-              </button>
-
-              {/* Settings */}
-              <button className="p-2 text-slate-400 hover:text-slate-300">
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd"/>
-                </svg>
-              </button>
-
-              {/* Avatar */}
-              <div className="flex items-center gap-3">
-                <div className="text-right">
-                  <p className="text-sm font-semibold text-slate-200">Admin</p>
-                  <p className="text-xs text-slate-400">HR Manager</p>
-                </div>
-                <div className="w-10 h-10 rounded-full bg-purple-500 flex items-center justify-center text-white font-bold">
-                  AA
-                </div>
-              </div>
-            </div>
-          </div>
-        </header>
         {/* CONTENT AREA */}
         <div className="p-8 space-y-8">
           
           {/* ============================================ */}
-          {/* STATISTICS CARDS */}
+          {/* STATISTICS CARDS - AHORA DINÁMICAS */}
           {/* ============================================ */}
           <div className="grid grid-cols-4 gap-6">
             
-            {/* Card 1: Total Empleados */}
+            {/* Card 1: Total Empleados - DINÁMICO */}
             <div className="bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 rounded-xl p-6 hover:shadow-lg hover:shadow-purple-500/20 transition-all">
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">Total Empleados</p>
-                  <p className="text-3xl font-bold text-slate-200">0</p>
+                  <p className="text-3xl font-bold text-slate-200">{totalEmployees}</p>
                   <div className="flex items-center gap-1 mt-2">
                     <svg className="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd"/>
@@ -235,12 +58,12 @@ const Dashboard = () => {
               </div>
             </div>
 
-            {/* Card 2: Nuevos Este Mes */}
+            {/* Card 2: Nuevos Este Mes - DINÁMICO */}
             <div className="bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 rounded-xl p-6 hover:shadow-lg hover:shadow-purple-500/20 transition-all">
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">Nuevos Este Mes</p>
-                  <p className="text-3xl font-bold text-slate-200">8</p>
+                  <p className="text-3xl font-bold text-slate-200">{newThisMonth}</p>
                   <div className="flex items-center gap-1 mt-2">
                     <svg className="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd"/>
@@ -256,12 +79,12 @@ const Dashboard = () => {
               </div>
             </div>
 
-            {/* Card 3: Departamentos */}
+            {/* Card 3: Departamentos - DINÁMICO */}
             <div className="bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 rounded-xl p-6 hover:shadow-lg hover:shadow-pink-500/20 transition-all">
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">Departamentos</p>
-                  <p className="text-3xl font-bold text-slate-200">5</p>
+                  <p className="text-3xl font-bold text-slate-200">{departmentsCount}</p>
                   <div className="flex items-center gap-1 mt-2">
                     <span className="text-xs text-slate-400 font-semibold">0%</span>
                   </div>
@@ -274,12 +97,12 @@ const Dashboard = () => {
               </div>
             </div>
 
-            {/* Card 4: Sueldo Promedio */}
+            {/* Card 4: Sueldo Promedio - DINÁMICO */}
             <div className="bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 rounded-xl p-6 hover:shadow-lg hover:shadow-yellow-500/20 transition-all">
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-xs text-slate-400 uppercase tracking-wider mb-2">Sueldo Promedio</p>
-                  <p className="text-3xl font-bold text-slate-200">S/ 4,500</p>
+                  <p className="text-3xl font-bold text-slate-200">S/ {averageSalary.toLocaleString('es-PE')}</p>
                   <div className="flex items-center gap-1 mt-2">
                     <svg className="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd"/>
